@@ -63,3 +63,5 @@ CREATE TABLE IF NOT EXISTS market_order (
     FOREIGN KEY (item_unique_name) REFERENCES item(unique_name),
     FOREIGN KEY (location_id) REFERENCES location(id)
 );
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
