@@ -152,3 +152,9 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_created_at_and_loc
 CREATE UNIQUE INDEX IF NOT EXISTS market_orders_count_by_created_at_and_location_idx ON market_orders_count_by_created_at_and_location(location, created_at);
 
 CREATE INDEX IF NOT EXISTS market_orders_auction_type_idx ON market_order(auction_type);
+
+REFRESH MATERIALIZED VIEW market_orders_count_by_location WITH NO DATA;
+REFRESH MATERIALIZED VIEW market_orders_count_by_updated_at WITH NO DATA;
+REFRESH MATERIALIZED VIEW market_orders_count_by_updated_at_and_location WITH NO DATA;
+REFRESH MATERIALIZED VIEW market_orders_count_by_created_at WITH NO DATA;
+REFRESH MATERIALIZED VIEW market_orders_count_by_created_at_and_location WITH NO DATA;
