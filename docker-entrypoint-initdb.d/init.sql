@@ -1,6 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
---CREATE EXTENSION IF NOT EXISTS pg_partman;
---CREATE EXTENSION IF NOT EXISTS pg_cron;
+CREATE EXTENSION IF NOT EXISTS pg_partman;
+CREATE EXTENSION IF NOT EXISTS pg_cron;
 
 CREATE TABLE
     IF NOT EXISTS item (
@@ -218,3 +218,13 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_updated_at;
 REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_updated_at_and_location;
 REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_location;
 REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_updated_in_last_24h;
+
+-- Create cron jobs for refreshing materialized views
+
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_order_stats_by_item_and_day');
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_created_at');
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_created_at_and_location');
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_updated_at');
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_updated_at_and_location');
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_count_by_location');
+SELECT cron.schedule('*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY market_orders_updated_in_last_24h');

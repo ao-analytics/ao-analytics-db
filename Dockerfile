@@ -23,5 +23,4 @@ RUN git clone https://github.com/citusdata/pg_cron.git \
     && make \
     && make install
 
-COPY ./postgresql.conf /etc/postgresql/postgresql.conf
-COPY ./init.sql /docker-entrypoint-initdb.d/init.sql
+COPY ./docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
