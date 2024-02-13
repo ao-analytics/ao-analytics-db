@@ -50,21 +50,7 @@ CREATE TABLE
         tr_tr TEXT,
         ar_sa TEXT,
         PRIMARY KEY (item_unique_name),
-        FOREIGN KEY (item_unique_name) REFERENCES item (unique_name)
-    );
-
-CREATE TABLE
-    IF NOT EXISTS location (
-        id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        PRIMARY KEY (id)
-    );
-
-CREATE TABLE
-    IF NOT EXISTS market_history (
-        item_unique_name TEXT NOT NULL,
-        location_id TEXT NOT NULL,
-        quality_level INTEGER NOT NULL,
+        FOREIGN KEY (item_unique_nlazy NULL,
         timescale INTEGER NOT NULL,
         timestamp TIMESTAMPTZ NOT NULL,
         item_amount INTEGER NOT NULL,
@@ -107,9 +93,7 @@ SELECT
 FROM
     market_order
 GROUP BY
-    location_id
-ORDER BY
-    count DESC;
+    location_id;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_updated_in_last_24h AS
 SELECT
@@ -136,7 +120,7 @@ SELECT
     COUNT(*) as count,
     MAX(unit_price_silver) as max_unit_price_silver,
     MIN(unit_price_silver) as min_unit_price_silver,
-    AVG(unit_price_silver) as avg_unit_price_silver,
+    AVG(unit_price_silver):: as avg_unit_price_silver,
     SUM(amount) as sum_amount
 FROM
     market_order
@@ -153,13 +137,11 @@ FROM
 WHERE
     expires_at > NOW()
 GROUP BY
-    date_trunc('hour', updated_at)
-ORDER BY
-    updated_at DESC;
+    date_trunc('hour', updated_at);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_updated_at_and_location AS
 SELECT
-    date_trunc('hour', updated_at)  as updated_at,
+    date_trunc('hour', updated_at) as updated_at,
     location_id,
     COUNT(*) as count
 FROM
@@ -168,9 +150,7 @@ WHERE
     expires_at > NOW ()
 GROUP BY
     date_trunc('hour', updated_at),
-    location_id
-ORDER BY
-    updated_at DESC;
+    location_id;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_created_at AS
 SELECT
@@ -181,9 +161,7 @@ FROM
 WHERE
     expires_at > NOW()
 GROUP BY
-    date_trunc('hour', created_at)
-ORDER BY
-    created_at DESC;
+    date_trunc('hour', created_at);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_created_at_and_location AS
 SELECT
@@ -196,9 +174,7 @@ WHERE
     expires_at > NOW ()
 GROUP BY
     date_trunc('hour', created_at),
-    location_id
-ORDER BY
-    created_at DESC;
+    location_id;
 
 CREATE UNIQUE INDEX ON market_order_stats_by_item_and_day (date, item_unique_name);
 CREATE UNIQUE INDEX ON market_orders_count_by_created_at (created_at);
