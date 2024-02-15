@@ -119,7 +119,7 @@ SELECT
     AVG(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'request') / SUM(amount) FILTER (WHERE auction_type = 'request')::float8 as avg_unit_price_silver_request,
     SUM(amount) FILTER (WHERE auction_type = 'request') as sum_amount_request
 FROM
-    unique_market_order
+    market_order
 GROUP BY
     date,
     item_unique_name;
