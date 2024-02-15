@@ -50,22 +50,14 @@ CREATE TABLE
         tr_tr TEXT,
         ar_sa TEXT,
         PRIMARY KEY (item_unique_name),
-        FOREIGN KEY (item_unique_nlazy NULL,
-        timescale INTEGER NOT NULL,
-        timestamp TIMESTAMPTZ NOT NULL,
-        item_amount INTEGER NOT NULL,
-        silver_amount INTEGER NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        PRIMARY KEY (
-            item_unique_name,
-            location_id,
-            quality_level,
-            timescale,
-            timestamp
-        ),
-        FOREIGN KEY (item_unique_name) REFERENCES item (unique_name),
-        FOREIGN KEY (location_id) REFERENCES location (id)
+        FOREIGN KEY (item_unique_name) REFERENCES item (unique_name)
+    );
+
+CREATE TABLE
+    IF NOT EXISTS location (
+        id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        PRIMARY KEY (id)
     );
 
 CREATE TABLE
@@ -117,15 +109,19 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS market_order_stats_by_item_and_day AS
 SELECT
     updated_at::date as date,
     item_unique_name,
-    COUNT(*) as count,
-    MAX(unit_price_silver) as max_unit_price_silver,
-    MIN(unit_price_silver) as min_unit_price_silver,
-    AVG(unit_price_silver):: as avg_unit_price_silver,
-    SUM(amount) as sum_amount
+    COUNT(*) as total_count,
+    MAX(unit_price_silver) FILTER (WHERE auction_type = 'offer') as max_unit_price_silver_offer,
+    MIN(unit_price_silver) FILTER (WHERE auction_type = 'offer') as min_unit_price_silver_offer,
+    AVG(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'offer') / SUM(amount) FILTER (WHERE auction_type = 'offer')::float8 as avg_unit_price_silver_offer,
+    SUM(amount) FILTER (WHERE auction_type = 'offer') as sum_amount_offer,
+    MAX(unit_price_silver) FILTER (WHERE auction_type = 'request') as max_unit_price_silver_request,
+    MIN(unit_price_silver) FILTER (WHERE auction_type = 'request') as min_unit_price_silver_request,
+    AVG(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'request') / SUM(amount) FILTER (WHERE auction_type = 'request')::float8 as avg_unit_price_silver_request,
+    SUM(amount) FILTER (WHERE auction_type = 'request') as sum_amount_request
 FROM
-    market_order
+    unique_market_order
 GROUP BY
-    updated_at::date,
+    date,
     item_unique_name;
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_updated_at AS
