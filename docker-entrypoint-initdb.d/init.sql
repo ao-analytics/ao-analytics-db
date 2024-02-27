@@ -112,11 +112,11 @@ SELECT
     COUNT(*) as total_count,
     MAX(unit_price_silver) FILTER (WHERE auction_type = 'offer') as max_unit_price_silver_offer,
     MIN(unit_price_silver) FILTER (WHERE auction_type = 'offer') as min_unit_price_silver_offer,
-    AVG(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'offer') / SUM(amount) FILTER (WHERE auction_type = 'offer')::float8 as avg_unit_price_silver_offer,
+    ROUND(SUM(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'offer') / SUM(amount) FILTER (WHERE auction_type = 'offer')) as avg_unit_price_silver_offer,
     SUM(amount) FILTER (WHERE auction_type = 'offer') as sum_amount_offer,
     MAX(unit_price_silver) FILTER (WHERE auction_type = 'request') as max_unit_price_silver_request,
     MIN(unit_price_silver) FILTER (WHERE auction_type = 'request') as min_unit_price_silver_request,
-    AVG(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'request') / SUM(amount) FILTER (WHERE auction_type = 'request')::float8 as avg_unit_price_silver_request,
+    ROUND(SUM(unit_price_silver::BIGINT * amount::BIGINT) FILTER (WHERE auction_type = 'request') / SUM(amount) FILTER (WHERE auction_type = 'request')) as avg_unit_price_silver_request,
     SUM(amount) FILTER (WHERE auction_type = 'request') as sum_amount_request
 FROM
     market_order
