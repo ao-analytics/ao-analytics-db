@@ -1,6 +1,7 @@
 CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE TABLE
     IF NOT EXISTS shop_category (
@@ -89,6 +90,19 @@ CREATE TABLE
 SELECT FROM create_hypertable('market_order', by_range('updated_at', INTERVAL '30 minutes'), if_not_exists := true);
 
 CREATE INDEX market_order_id_idx ON market_order (id);
+
+CREATE TABLE
+    IF NOT EXISTS market_order_backup (
+        id BIGINT NOT NULL,
+        item_unique_name TEXT NOT NULL,
+        location_id TEXT NOT NULL,
+        quality_level INTEGER NOT NULL,
+        unit_price_silver INTEGER NOT NULL,
+        amount INTEGER NOT NULL,
+        auction_type TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_updated_at_and_location
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
