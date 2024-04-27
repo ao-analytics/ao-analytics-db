@@ -37,8 +37,8 @@ CREATE TABLE
         FOREIGN KEY (shop_sub_category_id) REFERENCES shop_sub_category (id)
 );
 
-CREATE INDEX item_data_enchantment_level_idx ON item_data (enchantment_level);
-CREATE INDEX item_data_tier_idx ON item_data (tier);
+CREATE INDEX IF NOT EXISTS item_data_enchantment_level_idx ON item_data (enchantment_level);
+CREATE INDEX IF NOT EXISTS item_data_tier_idx ON item_data (tier);
 
 CREATE TABLE
     IF NOT EXISTS localized_name (
@@ -49,8 +49,8 @@ CREATE TABLE
         FOREIGN KEY (item_unique_name) REFERENCES item (unique_name)
 );
 
-CREATE INDEX localized_name_lang_idx ON localized_name (lang);
-CREATE INDEX localized_name_name_idx ON localized_name (name);
+CREATE INDEX IF NOT EXISTS localized_name_lang_idx ON localized_name (lang);
+CREATE INDEX IF NOT EXISTS localized_name_name_idx ON localized_name (name);
 
 CREATE TABLE
     IF NOT EXISTS localized_description (
@@ -89,7 +89,7 @@ CREATE TABLE
 
 SELECT FROM create_hypertable('market_order', by_range('updated_at', INTERVAL '30 minutes'), if_not_exists := true);
 
-CREATE INDEX market_order_id_idx ON market_order (id);
+CREATE INDEX IF NOT EXISTS market_order_id_idx ON market_order (id);
 
 CREATE TABLE
     IF NOT EXISTS market_order_backup (
@@ -104,7 +104,7 @@ CREATE TABLE
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_updated_at_and_location
+CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_hour_and_location
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     time_bucket('1 hour', updated_at) as date,
@@ -126,7 +126,7 @@ GROUP BY
     item_unique_name,
     location_id;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_updated_at
+CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_hour
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     time_bucket('1 hour', updated_at) as date,
@@ -146,7 +146,7 @@ GROUP BY
     date,
     item_unique_name;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_updated_at_and_location
+CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_hour_and_location
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     time_bucket('1 hour', updated_at) as date,
@@ -160,7 +160,7 @@ GROUP BY
     date,
     location_id;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_updated_at
+CREATE MATERIALIZED VIEW IF NOT EXISTS market_orders_count_by_hour
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
     time_bucket('1 hour', updated_at) as date,
@@ -173,31 +173,37 @@ GROUP BY
     date;
 
 SELECT add_continuous_aggregate_policy(
-               continuous_aggregate := 'market_orders_count_by_updated_at',
-               start_offset := INTERVAL '1 day',
-               end_offset := NULL,
-               schedule_interval := INTERVAL '5 minutes');
+        continuous_aggregate := 'market_orders_count_by_hour',
+        start_offset := INTERVAL '1 day',
+        end_offset := NULL,
+        schedule_interval := INTERVAL '5 minutes',
+        if_not_exists := true);
 
 SELECT add_continuous_aggregate_policy(
-               continuous_aggregate := 'market_orders_count_by_updated_at_and_location',
-               start_offset := INTERVAL '1 day',
-               end_offset := NULL,
-               schedule_interval := INTERVAL '5 minutes');
+        continuous_aggregate := 'market_orders_count_by_hour_and_location',
+        start_offset := INTERVAL '1 day',
+        end_offset := NULL,
+        schedule_interval := INTERVAL '5 minutes',
+        if_not_exists := true);
 
 SELECT add_continuous_aggregate_policy(
-               continuous_aggregate := 'item_prices_by_updated_at',
-               start_offset := INTERVAL '1 day',
-               end_offset := NULL,
-               schedule_interval := INTERVAL '5 minutes');
+        continuous_aggregate := 'item_prices_by_hour',
+        start_offset := INTERVAL '1 day',
+        end_offset := NULL,
+        schedule_interval := INTERVAL '5 minutes',
+        if_not_exists := true);
 
 SELECT add_continuous_aggregate_policy(
-               continuous_aggregate := 'item_prices_by_updated_at_and_location',
-               start_offset := INTERVAL '1 day',
-               end_offset := NULL,
-               schedule_interval := INTERVAL '5 minutes');
+        continuous_aggregate := 'item_prices_by_hour_and_location',
+        start_offset := INTERVAL '1 day',
+        end_offset := NULL,
+        schedule_interval := INTERVAL '5 minutes',
+        if_not_exists := true);
 
+/*
 SELECT add_retention_policy(
-       relation := 'market_order',
-       drop_after := INTERVAL '2 days',
-       if_not_exists := true,
-       schedule_interval := INTERVAL '5 minutes');
+        relation := 'market_order',
+        drop_after := INTERVAL '2 days',
+        schedule_interval := INTERVAL '5 minutes',
+        if_not_exists := true);
+*/
