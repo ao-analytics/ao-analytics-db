@@ -176,34 +176,32 @@ SELECT add_continuous_aggregate_policy(
         continuous_aggregate := 'market_orders_count_by_hour',
         start_offset := INTERVAL '1 day',
         end_offset := NULL,
-        schedule_interval := INTERVAL '5 minutes',
+        schedule_interval := INTERVAL '30 minutes',
         if_not_exists := true);
 
 SELECT add_continuous_aggregate_policy(
         continuous_aggregate := 'market_orders_count_by_hour_and_location',
         start_offset := INTERVAL '1 day',
         end_offset := NULL,
-        schedule_interval := INTERVAL '5 minutes',
+        schedule_interval := INTERVAL '30 minutes',
         if_not_exists := true);
 
 SELECT add_continuous_aggregate_policy(
         continuous_aggregate := 'item_prices_by_hour',
         start_offset := INTERVAL '1 day',
         end_offset := NULL,
-        schedule_interval := INTERVAL '5 minutes',
+        schedule_interval := INTERVAL '30 minutes',
         if_not_exists := true);
 
 SELECT add_continuous_aggregate_policy(
         continuous_aggregate := 'item_prices_by_hour_and_location',
         start_offset := INTERVAL '1 day',
         end_offset := NULL,
-        schedule_interval := INTERVAL '5 minutes',
+        schedule_interval := INTERVAL '30 minutes',
         if_not_exists := true);
 
-/*
 SELECT add_retention_policy(
         relation := 'market_order',
-        drop_after := INTERVAL '2 days',
-        schedule_interval := INTERVAL '5 minutes',
+        drop_after := INTERVAL '1 day',
+        schedule_interval := INTERVAL '1 hour',
         if_not_exists := true);
-*/
