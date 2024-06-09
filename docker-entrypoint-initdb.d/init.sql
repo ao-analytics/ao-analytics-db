@@ -119,14 +119,13 @@ CREATE TABLE
             location_id,
             quality_level,
             timescale,
-            timestamp,
-            updated_at
+            timestamp
         ),
         FOREIGN KEY (item_unique_name) REFERENCES item (unique_name),
         FOREIGN KEY (location_id) REFERENCES location (id)
     );
 
-SELECT FROM create_hypertable('market_history', 'updated_at', if_not_exists := true);
+SELECT FROM create_hypertable('market_history', 'timestamp', if_not_exists := true);
 
 CREATE INDEX IF NOT EXISTS market_history_timescale_idx ON market_history (timescale);
 CREATE INDEX IF NOT EXISTS market_history_timestamp_idx ON market_history (timestamp);
