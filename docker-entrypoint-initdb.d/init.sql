@@ -104,6 +104,46 @@ CREATE TABLE
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+CREATE TABLE
+    IF NOT EXISTS market_history (
+        item_unique_name TEXT NOT NULL,
+        location_id TEXT NOT NULL,
+        quality_level INTEGER NOT NULL,
+        timescale INTEGER NOT NULL,
+        timestamp TIMESTAMPTZ NOT NULL,
+        item_amount INTEGER NOT NULL,
+        silver_amount INTEGER NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (
+            item_unique_name,
+            location_id,
+            quality_level,
+            timescale,
+            timestamp,
+            updated_at
+        ),
+        FOREIGN KEY (item_unique_name) REFERENCES item (unique_name),
+        FOREIGN KEY (location_id) REFERENCES location (id)
+    );
+
+SELECT FROM create_hypertable('market_history', 'updated_at', if_not_exists := true);
+
+CREATE INDEX IF NOT EXISTS market_history_timescale_idx ON market_history (timescale);
+CREATE INDEX IF NOT EXISTS market_history_timestamp_idx ON market_history (timestamp);
+CREATE INDEX IF NOT EXISTS market_history_item_unique_name_idx ON market_history (item_unique_name);
+
+CREATE TABLE
+    IF NOT EXISTS market_history_backup (
+        item_unique_name TEXT NOT NULL,
+        location_id TEXT NOT NULL,
+        quality_level INTEGER NOT NULL,
+        timescale INTEGER NOT NULL,
+        timestamp TIMESTAMPTZ NOT NULL,
+        item_amount INTEGER NOT NULL,
+        silver_amount INTEGER NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_hour_and_location
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
 SELECT
