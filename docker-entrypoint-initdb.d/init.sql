@@ -125,7 +125,14 @@ CREATE TABLE
         FOREIGN KEY (location_id) REFERENCES location (id)
     );
 
-SELECT FROM create_hypertable('market_history', 'timestamp', if_not_exists := true);
+SELECT FROM create_hypertable('market_history', by_range('timestamp', INTERVAL '1 day'), if_not_exists := true);
+
+ALTER TABLE market_history SET(
+        timescaledb.compress,
+        timescaledb.compress_orderby = 'timestamp DESC',
+        timescaledb.compress_segmentby = 'item_unique_name, location_id, quality_level, timescale',
+        timescaledb.compress_chunk_time_interval = '1 day'
+    );
 
 CREATE INDEX IF NOT EXISTS market_history_timescale_idx ON market_history (timescale);
 CREATE INDEX IF NOT EXISTS market_history_timestamp_idx ON market_history (timestamp);
@@ -244,3 +251,10 @@ SELECT add_retention_policy(
         drop_after := INTERVAL '1 day',
         schedule_interval := INTERVAL '1 hour',
         if_not_exists := true);
+
+SELECT add_compression_policy(
+       hypertable := 'market_history',
+       compress_after := INTERVAL '1 month',
+       if_not_exists := true,
+       schedule_interval := INTERVAL '1 hour',
+       initial_start := NULL);
