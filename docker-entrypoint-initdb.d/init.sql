@@ -4,41 +4,10 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS timescaledb;
 
 CREATE TABLE
-    IF NOT EXISTS shop_category (
-        id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        PRIMARY KEY (id)
-);
-
-CREATE TABLE
-    IF NOT EXISTS shop_sub_category (
-        id TEXT NOT NULL,
-        name TEXT NOT NULL,
-        shop_category_id TEXT NOT NULL,
-        PRIMARY KEY (id),
-        FOREIGN KEY (shop_category_id) REFERENCES shop_category (id)
-);
-
-CREATE TABLE
     IF NOT EXISTS item (
         unique_name TEXT NOT NULL,
         PRIMARY KEY (unique_name)
 );
-
-CREATE TABLE
-    IF NOT EXISTS item_data (
-        item_unique_name TEXT NOT NULL,
-        enchantment_level INTEGER NOT NULL,
-        shop_sub_category_id TEXT,
-        tier INTEGER,
-        weight REAL,
-        PRIMARY KEY (item_unique_name),
-        FOREIGN KEY (item_unique_name) REFERENCES item (unique_name),
-        FOREIGN KEY (shop_sub_category_id) REFERENCES shop_sub_category (id)
-);
-
-CREATE INDEX IF NOT EXISTS item_data_enchantment_level_idx ON item_data (enchantment_level);
-CREATE INDEX IF NOT EXISTS item_data_tier_idx ON item_data (tier);
 
 CREATE TABLE
     IF NOT EXISTS localized_name (
@@ -126,13 +95,6 @@ CREATE TABLE
     );
 
 SELECT FROM create_hypertable('market_history', by_range('timestamp', INTERVAL '1 day'), if_not_exists := true);
-
-ALTER TABLE market_history SET(
-        timescaledb.compress,
-        timescaledb.compress_orderby = 'timestamp DESC',
-        timescaledb.compress_segmentby = 'item_unique_name, location_id, quality_level, timescale',
-        timescaledb.compress_chunk_time_interval = '1 day'
-    );
 
 CREATE INDEX IF NOT EXISTS market_history_timescale_idx ON market_history (timescale);
 CREATE INDEX IF NOT EXISTS market_history_timestamp_idx ON market_history (timestamp);
@@ -251,10 +213,3 @@ SELECT add_retention_policy(
         drop_after := INTERVAL '1 day',
         schedule_interval := INTERVAL '1 hour',
         if_not_exists := true);
-
-SELECT add_compression_policy(
-       hypertable := 'market_history',
-       compress_after := INTERVAL '1 month',
-       if_not_exists := true,
-       schedule_interval := INTERVAL '1 hour',
-       initial_start := NULL);
