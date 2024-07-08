@@ -10,6 +10,16 @@ CREATE TABLE
 );
 
 CREATE TABLE
+    IF NOT EXISTS
+        item_data (
+            item_unique_name TEXT NOT NULL,
+            data JSONB NOT NULL,
+
+            PRIMARY KEY (item_unique_name),
+            FOREIGN KEY (item_unique_name) REFERENCES item (unique_name)
+);
+
+CREATE TABLE
     IF NOT EXISTS localized_name (
         item_unique_name TEXT NOT NULL,
         lang TEXT NOT NULL,
