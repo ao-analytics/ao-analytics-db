@@ -2,6 +2,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS timescaledb;
+SET pg_trgm.similarity_threshold = 0.5;
 
 CREATE TABLE
     IF NOT EXISTS item (
@@ -30,6 +31,7 @@ CREATE TABLE
 
 CREATE INDEX IF NOT EXISTS localized_name_lang_idx ON localized_name (lang);
 CREATE INDEX IF NOT EXISTS localized_name_name_idx ON localized_name (name);
+CREATE INDEX localized_name_lang_gist_idx ON localized_name USING gist(name gist_trgm_ops);
 
 CREATE TABLE
     IF NOT EXISTS localized_description (
@@ -55,6 +57,8 @@ CREATE TABLE
         id BIGINT NOT NULL,
         item_unique_name TEXT NOT NULL,
         location_id TEXT NOT NULL,
+        tier INTEGER NOT NULL,
+        enchantment_level INTEGER NOT NULL,
         quality_level INTEGER NOT NULL,
         unit_price_silver INTEGER NOT NULL,
         amount INTEGER NOT NULL,
@@ -69,24 +73,18 @@ CREATE TABLE
 SELECT FROM create_hypertable('market_order', by_range('updated_at', INTERVAL '30 minutes'), if_not_exists := true);
 
 CREATE INDEX IF NOT EXISTS market_order_id_idx ON market_order (id);
-
-CREATE TABLE
-    IF NOT EXISTS market_order_backup (
-        id BIGINT NOT NULL,
-        item_unique_name TEXT NOT NULL,
-        location_id TEXT NOT NULL,
-        quality_level INTEGER NOT NULL,
-        unit_price_silver INTEGER NOT NULL,
-        amount INTEGER NOT NULL,
-        auction_type TEXT NOT NULL,
-        expires_at TIMESTAMPTZ NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+CREATE INDEX IF NOT EXISTS market_order_location_id_idx ON market_order (location_id);
+CREATE INDEX IF NOT EXISTS market_order_tier_idx ON market_order (tier);
+CREATE INDEX IF NOT EXISTS market_order_enchantment_level_idx ON market_order (enchantment_level);
+CREATE INDEX IF NOT EXISTS market_order_quality_level_idx ON market_order (quality_level);
+CREATE INDEX IF NOT EXISTS market_order_auction_type_idx ON market_order (auction_type);
 
 CREATE TABLE
     IF NOT EXISTS market_history (
         item_unique_name TEXT NOT NULL,
         location_id TEXT NOT NULL,
+        tier INTEGER NOT NULL,
+        enchantment_level INTEGER NOT NULL,
         quality_level INTEGER NOT NULL,
         timescale INTEGER NOT NULL,
         timestamp TIMESTAMPTZ NOT NULL,
@@ -109,18 +107,10 @@ SELECT FROM create_hypertable('market_history', by_range('timestamp', INTERVAL '
 CREATE INDEX IF NOT EXISTS market_history_timescale_idx ON market_history (timescale);
 CREATE INDEX IF NOT EXISTS market_history_timestamp_idx ON market_history (timestamp);
 CREATE INDEX IF NOT EXISTS market_history_item_unique_name_idx ON market_history (item_unique_name);
-
-CREATE TABLE
-    IF NOT EXISTS market_history_backup (
-        item_unique_name TEXT NOT NULL,
-        location_id TEXT NOT NULL,
-        quality_level INTEGER NOT NULL,
-        timescale INTEGER NOT NULL,
-        timestamp TIMESTAMPTZ NOT NULL,
-        item_amount INTEGER NOT NULL,
-        silver_amount INTEGER NOT NULL,
-        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
+CREATE INDEX IF NOT EXISTS market_history_location_id_idx ON market_history (location_id);
+CREATE INDEX IF NOT EXISTS market_history_tier_idx ON market_history (tier);
+CREATE INDEX IF NOT EXISTS market_history_enchantment_level_idx ON market_history (enchantment_level);
+CREATE INDEX IF NOT EXISTS market_history_quality_level_idx ON market_history (quality_level);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS item_prices_by_hour_and_location
 WITH (timescaledb.continuous, timescaledb.materialized_only = false) AS
