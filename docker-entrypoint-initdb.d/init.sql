@@ -213,3 +213,18 @@ SELECT add_retention_policy(
         drop_after := INTERVAL '1 day',
         schedule_interval := INTERVAL '1 hour',
         if_not_exists := true);
+
+ALTER TABLE market_history SET(
+        timescaledb.compress,
+        timescaledb.compress_orderby = 'timestamp DESC',
+        timescaledb.compress_segmentby = 'item_unique_name, location_id, quality_level, timescale',
+        timescaledb.compress_chunk_time_interval = '1 day'
+);
+
+SELECT add_compression_policy(
+       hypertable := 'market_history',
+       compress_after := INTERVAL '1 month',
+       if_not_exists := true,
+       schedule_interval := INTERVAL '1 day',
+       initial_start := NULL);
+
